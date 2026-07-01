@@ -73,21 +73,55 @@ class DashboardScreen extends StatelessWidget {
             child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                    // Mode Pill
-                    Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                        decoration: BoxDecoration(
-                            color: AppColors.surfaceCard,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: AppColors.glassBorder),
-                        ),
-                        child: Row(
-                            children: [
-                                const Icon(LucideIcons.sliders, size: 14, color: AppColors.primaryNeon),
-                                const SizedBox(width: 8),
-                                Text(controller.selectedMode, style: const TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w500)),
-                            ],
-                        ),
+                    Row(
+                        children: [
+                            // Tombol Proyek Workspace ala AntiGravity
+                            InkWell(
+                                onTap: () => showDialog(
+                                    context: context,
+                                    builder: (_) => const ProjectSelectorDialog(),
+                                ),
+                                borderRadius: BorderRadius.circular(20),
+                                child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                                    decoration: BoxDecoration(
+                                        color: AppColors.primaryNeon.withOpacity(0.15),
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(color: AppColors.primaryNeon),
+                                    ),
+                                    child: Row(
+                                        children: [
+                                            const Icon(LucideIcons.folderKanban, size: 14, color: AppColors.primaryNeon),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                                controller.currentProject?.name ?? 'Pilih Proyek...',
+                                                style: const TextStyle(fontSize: 12, color: AppColors.primaryNeon, fontWeight: FontWeight.bold),
+                                            ),
+                                            const SizedBox(width: 4),
+                                            const Icon(LucideIcons.chevronDown, size: 14, color: AppColors.primaryNeon),
+                                        ],
+                                    ),
+                                ),
+                            ),
+                            const SizedBox(width: 12),
+
+                            // Mode Pill
+                            Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                                decoration: BoxDecoration(
+                                    color: AppColors.surfaceCard,
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(color: AppColors.glassBorder),
+                                ),
+                                child: Row(
+                                    children: [
+                                        const Icon(LucideIcons.sliders, size: 14, color: AppColors.primaryNeon),
+                                        const SizedBox(width: 8),
+                                        Text(controller.selectedMode, style: const TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w500)),
+                                    ],
+                                ),
+                            ),
+                        ],
                     ),
 
                     // Right Links & Avatar
