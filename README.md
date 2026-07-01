@@ -16,6 +16,13 @@ Di balik layar, model utama (**Nvoin Manager**) yang disiapkan untuk model open 
 
 ---
 
+## 🔬 Catatan Kritis Arsitektur & Peta Jalan Riset
+Sesuai analisis kritis engineering di [ARCHITECTURE_ANALYSIS.md](file:///C:/Users/Nvoinvx/Downloads/AI_AGENT_CODE/ARCHITECTURE_ANALYSIS.md), sistem ini membedakan secara tegas antara **Behavior Sistem** (orkestrasi, routing modular) dengan **Metode Pelatihan**:
+- **Tahap Saat Ini (Modular Orchestration Framework)**: Routing dilakukan secara *prompt-based* & *rule-based* yang kompatibel dengan model open-source apa pun melalui Ollama/vLLM/OpenAI endpoint. Dilengkapi dengan **Confidence Score** dan **Planning Mode** agar tidak asal mengeksekusi kode.
+- **Tahap Riset Masa Depan (Fine-Tuned Neural Manager)**: Arsitektur disiapkan dengan *hook/interface* modular sehingga model manager hasil fine-tuning (menggunakan pipeline `training/`) kelak dapat langsung menggantikan prompt-router tanpa merubah struktur alat maupun antarmuka Flutter.
+
+---
+
 ## Struktur Proyek
 
 ```text
