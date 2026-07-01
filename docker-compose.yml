@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  # Layanan LLM Open-Source Backend (Ollama) untuk melayani model seperti Gemma 4 12B
+  ollama:
+    image: ollama/ollama:latest
+    container_name: fugu_ollama_backend
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_storage:/root/.ollama
+    restart: always
+
+  # Layanan AI Agent Code CLI/Orchestrator
+  agent-code:
+    build: .
+    container_name: fugu_ai_agent_code
+    environment:
+      - LLM_BACKEND=ollama
+      - OLLAMA_MODEL=gemma4:12b
+      - OLLAMA_BASE_URL=http://ollama:11434
+    volumes:
+      - ./workspace:/app/workspace  # Ruang kerja sandbox untuk eksekusi kode agen
+    depends_on:
+      - ollama
+    stdin_open: true
+    tty: true
+
+volumes:
+  ollama_storage:

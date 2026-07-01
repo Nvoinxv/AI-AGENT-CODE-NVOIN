@@ -1,0 +1,42 @@
+from enum import Enum
+from typing import Any, Dict, List, Optional
+from pydantic import BaseModel, Field
+from datetime import datetime
+
+class MessageRole(str, Enum):
+    SYSTEM = "system"
+    USER = "user"
+    ASSISTANT = "assistant"
+    TOOL = "tool"
+    SUBAGENT = "subagent"
+
+class ToolCall(BaseModel):
+    id: str
+    tool_name: str
+    arguments: Dict[str, Any]
+
+class Message(BaseModel):
+    role: MessageRole
+    content: str
+    tool_calls: Optional[List[ToolCall]] = None
+    tool_call_id: Optional[str] = None
+    name: Optional[str] = None  # Nama sub-agen atau tool jika relevan
+    timestamp: datetime = Field(default_factory=datetime.now)
+
+    def to_llm_dict(self) -> Dict[str, Any]:
+        """Format pesan ke struktur standar API (OpenAI/Ollama format)."""
+        payload = {"role": self.role.value, "content": self.content}
+        if self.tool_calls:
+            payload["tool_calls"] = [
+                {
+                    "id": tc.id,
+                    "type": "function",
+                    "function": {"name": tc.tool_name, "arguments": str(tc.arguments)}
+                }
+                for tc in self.tool_calls
+            ]
+        if self.tool_call_id:
+            payload["tool_call_id"] = self.tool_call_id
+        if self.name:
+            payload["name"] = self.name
+        return payload
