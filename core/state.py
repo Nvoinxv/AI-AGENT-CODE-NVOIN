@@ -10,7 +10,7 @@ class SubagentResult(BaseModel):
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
 class ExecutionState(BaseModel):
-    """Melacak status, riwayat pesan, dan hasil delegasi manajer Fugu."""
+    """Melacak status, riwayat pesan, confidence score, rencana implementasi, dan hasil delegasi Nvoin AI."""
     session_id: str
     messages: List[Message] = Field(default_factory=list)
     subagent_history: List[SubagentResult] = Field(default_factory=list)
@@ -18,6 +18,12 @@ class ExecutionState(BaseModel):
     is_finished: bool = False
     final_response: Optional[str] = None
     context_variables: Dict[str, Any] = Field(default_factory=dict)
+    
+    # Fitur Keamanan & Kepastian (Confidence Score & Planning Mode)
+    confidence_score: float = 1.0
+    requires_clarification: bool = False
+    implementation_plan: Optional[str] = None
+    plan_approved: bool = False
 
     def add_message(self, message: Message):
         self.messages.append(message)
@@ -26,10 +32,17 @@ class ExecutionState(BaseModel):
         self.subagent_history.append(result)
 
     def get_summary_for_manager(self) -> str:
-        """Merangkum riwayat kerja tim sub-agen untuk dibaca oleh Manajer Fugu."""
+        """Merangkum riwayat kerja tim sub-agen untuk dibaca oleh Manajer Nvoin AI."""
+        summary = ""
+        if self.implementation_plan:
+            status_plan = "DISETUJUI" if self.plan_approved else "MENUNGGU PERSETUJUAN PENGGUNA"
+            summary += f"=== RENCANA IMPLEMENTASI SAAT INI ({status_plan}) ===\n{self.implementation_plan}\n\n"
+
         if not self.subagent_history:
-            return "Belum ada delegasi tugas ke sub-agen."
-        summary = "=== RIWAYAT EKSEKUSI TIM AHLI ===\n"
+            summary += "Belum ada delegasi tugas eksekusi ke sub-agen."
+            return summary
+
+        summary += "=== RIWAYAT EKSEKUSI TIM AHLI ===\n"
         for idx, res in enumerate(self.subagent_history, 1):
             status = "SUKSES" if res.success else "GAGAL"
             summary += f"[{idx}] Agen: {res.agent_name} | Status: {status}\n"
