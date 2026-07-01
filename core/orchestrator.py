@@ -39,35 +39,81 @@ class AgentOrchestrator:
             if self.config.agent.verbose:
                 print(f"[Fugu Orchestrator] Iterasi Manajer #{state.current_loop}")
 
-            # 1. Siapkan konteks untuk Manajer
+            # 1. Siapkan konteks untuk Manajer Nvoin AI
             manager_context = FUGU_MANAGER_PROMPT.format(
                 subagent_summary=state.get_summary_for_manager(),
-                user_prompt=user_prompt
+                user_prompt=user_prompt,
+                attachments_summary=str(attachments or "Tidak ada lampiran tambahan")
             )
 
             messages_for_llm = [
                 Message(role=MessageRole.SYSTEM, content=manager_context),
             ] + state.messages
 
-            # 2. Minta Manajer mengambil keputusan (Direct vs Delegate vs Finalize)
+            # 2. Minta Manajer mengambil keputusan
             raw_response = self.llm.generate(messages=messages_for_llm, temperature=0.1)
-            
             action_plan = self._parse_manager_decision(raw_response)
 
-            if action_plan.get("action") == "direct_answer" or action_plan.get("action") == "finish":
+            # Simpan skor keyakinan
+            if "confidence_score" in action_plan:
+                try:
+                    state.confidence_score = float(action_plan["confidence_score"])
+                except Exception:
+                    state.confidence_score = 0.8
+
+            action = action_plan.get("action")
+
+            # AKSI 1: Minta Klarifikasi jika instruksi ambigu (Confidence < 0.75)
+            if action == "ask_clarification" or state.confidence_score < 0.75:
+                state.requires_clarification = True
+                questions = action_plan.get("questions", ["Mohon perjelas detail instruksi Anda."])
+                recs = action_plan.get("recommendations", "")
+                
+                clarification_msg = f"=== [PERINGATAN KEYAKINAN NVOIN AI: {int(state.confidence_score * 100)}%] ===\n"
+                clarification_msg += "Instruksi terdeteksi kurang spesifik atau berisiko eksekusi salah. Untuk menghindari kesalahan:\n\n"
+                for idx, q in enumerate(questions, 1):
+                    clarification_msg += f"{idx}. {q}\n"
+                if recs:
+                    clarification_msg += f"\n💡 Saran Implementasi Nvoin AI: {recs}\n"
+                clarification_msg += "\nSilakan jawab pertanyaan di atas atau konfirmasi agar kami dapat membuatkan Rencana Implementasi."
+                
+                state.final_response = clarification_msg
+                state.is_finished = True
+                state.add_message(Message(role=MessageRole.ASSISTANT, content=clarification_msg))
+                break
+
+            # AKSI 2: Usulkan Rencana Implementasi (Planning Mode) sebelum eksekusi kode
+            elif action == "propose_plan":
+                task_prompt = action_plan.get("instruction", "Buat rencana implementasi detail.")
+                if "planner" in self.agents:
+                    plan_output, _ = self.agents["planner"].execute(task_prompt, state)
+                    state.implementation_plan = plan_output
+                    
+                    plan_msg = f"=== RENCANA IMPLEMENTASI NVOIN AI (Confidence: {int(state.confidence_score * 100)}%) ===\n"
+                    plan_msg += plan_output + "\n\n"
+                    plan_msg += "❓ Apakah Anda menyetujui Rencana Implementasi di atas sebelum kami mengeksekusi penulisan kode?"
+                    
+                    state.final_response = plan_msg
+                    state.is_finished = True
+                    state.add_message(Message(role=MessageRole.ASSISTANT, content=plan_msg))
+                    break
+
+            # AKSI 3: Jawab langsung atau selesai
+            elif action == "direct_answer" or action == "finish":
                 final_answer = action_plan.get("response", raw_response)
                 state.final_response = final_answer
                 state.is_finished = True
                 state.add_message(Message(role=MessageRole.ASSISTANT, content=final_answer))
                 break
 
-            elif action_plan.get("action") == "delegate":
+            # AKSI 4: Delegasikan ke Sub-Agen Eksekusi (Coder / Executor / Reviewer)
+            elif action == "delegate":
                 target_agent = action_plan.get("agent")
                 task_prompt = action_plan.get("instruction", user_prompt)
 
                 if target_agent in self.agents:
                     if self.config.agent.verbose:
-                        print(f"[Fugu Orchestrator] Mendelegasikan ke Tim Ahli: [{target_agent.upper()}] -> {task_prompt[:60]}...")
+                        print(f"[Nvoin Orchestrator] Mendelegasikan ke Tim Ahli: [{target_agent.upper()}] -> {task_prompt[:60]}...")
                     
                     sub_agent = self.agents[target_agent]
                     agent_output, success = sub_agent.execute(task_prompt, state)

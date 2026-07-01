@@ -81,6 +81,9 @@ class AgentController extends ChangeNotifier {
             content: res['response'] ?? 'Kesalahan menerima respons.',
             timestamp: DateTime.now(),
             subagentLogs: subagentLogs,
+            confidenceScore: (res['confidence_score'] as num?)?.toDouble() ?? 1.0,
+            requiresClarification: res['requires_clarification'] as bool? ?? false,
+            implementationPlan: res['implementation_plan'] as String?,
         );
 
         messages.add(aiMsg);

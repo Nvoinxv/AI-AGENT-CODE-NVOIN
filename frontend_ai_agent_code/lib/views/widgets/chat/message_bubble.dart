@@ -43,6 +43,57 @@ class MessageBubble extends StatelessWidget {
                             child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
+                                    // Confidence Score Badge untuk AI Assistant
+                                    if (!isUser && message.confidenceScore != null) ...[
+                                        Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                                Container(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                                    decoration: BoxDecoration(
+                                                        color: (message.confidenceScore! >= 0.75)
+                                                            ? AppColors.statusSuccess.withOpacity(0.2)
+                                                            : AppColors.statusWarning.withOpacity(0.2),
+                                                        borderRadius: BorderRadius.circular(12),
+                                                        border: Border.all(
+                                                            color: (message.confidenceScore! >= 0.75)
+                                                                ? AppColors.statusSuccess
+                                                                : AppColors.statusWarning,
+                                                        ),
+                                                    ),
+                                                    child: Row(
+                                                        mainAxisSize: MainAxisSize.min,
+                                                        children: [
+                                                            Icon(
+                                                                (message.confidenceScore! >= 0.75)
+                                                                    ? LucideIcons.shieldCheck
+                                                                    : LucideIcons.shieldAlert,
+                                                                size: 12,
+                                                                color: (message.confidenceScore! >= 0.75)
+                                                                    ? AppColors.statusSuccess
+                                                                    : AppColors.statusWarning,
+                                                            ),
+                                                            const SizedBox(width: 5),
+                                                            Text(
+                                                                'Confidence: ${(message.confidenceScore! * 100).toInt()}%',
+                                                                style: TextStyle(
+                                                                    fontSize: 10,
+                                                                    fontWeight: FontWeight.bold,
+                                                                    color: (message.confidenceScore! >= 0.75)
+                                                                        ? AppColors.statusSuccess
+                                                                        : AppColors.statusWarning,
+                                                                ),
+                                                            ),
+                                                        ],
+                                                    ),
+                                                ),
+                                                if (message.requiresClarification == true)
+                                                    const Text('⚠️ Klarifikasi Dibutuhkan', style: TextStyle(color: AppColors.statusWarning, fontSize: 11, fontWeight: FontWeight.bold)),
+                                            ],
+                                        ),
+                                        const SizedBox(height: 10),
+                                    ],
+
                                     // Attachments View
                                     if (message.attachments != null && message.attachments!.isNotEmpty) ...[
                                         Wrap(

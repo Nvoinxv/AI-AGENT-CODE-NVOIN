@@ -54,6 +54,9 @@ class ChatResponse(BaseModel):
     response: str
     subagent_logs: List[SubagentLog]
     os_info: Dict[str, Any]
+    confidence_score: float = 1.0
+    requires_clarification: bool = False
+    implementation_plan: Optional[str] = None
 
 @app.on_event("startup")
 def startup_event():
@@ -109,19 +112,32 @@ def handle_chat(req: ChatRequest):
 
     # Ekstrak riwayat subagent log langsung dari state orkestrasi
     subagent_logs = []
+    conf_score = 1.0
+    req_clarify = False
+    impl_plan = None
+
     if session_id in orchestrator.sessions:
-        for res in orchestrator.sessions[session_id].subagent_results:
+        st = orchestrator.sessions[session_id]
+        conf_score = st.confidence_score
+        req_clarify = st.requires_clarification
+        impl_plan = st.implementation_plan
+
+        for res in st.subagent_history:
             subagent_logs.append(SubagentLog(
-                agent_name=res.subagent_name,
+                agent_name=res.agent_name,
                 task_prompt=res.task_prompt,
                 output=res.output,
                 success=res.success
             ))
+
     return ChatResponse(
         session_id=session_id,
         response=response_text,
         subagent_logs=subagent_logs,
-        os_info=get_os_info()
+        os_info=get_os_info(),
+        confidence_score=conf_score,
+        requires_clarification=req_clarify,
+        implementation_plan=impl_plan
     )
 
 @app.get("/api/v1/workspace/files")

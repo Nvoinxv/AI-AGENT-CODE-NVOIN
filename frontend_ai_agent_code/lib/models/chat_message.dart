@@ -48,6 +48,9 @@ class ChatMessage {
     final DateTime timestamp;
     final List<MultimodalAttachment>? attachments;
     final List<SubagentLog>? subagentLogs;
+    final double? confidenceScore;
+    final bool? requiresClarification;
+    final String? implementationPlan;
 
     ChatMessage({
         required this.id,
@@ -56,5 +59,8 @@ class ChatMessage {
         required this.timestamp,
         this.attachments,
         this.subagentLogs,
+        this.confidenceScore,
+        this.requiresClarification,
+        this.implementationPlan,
     });
 }
