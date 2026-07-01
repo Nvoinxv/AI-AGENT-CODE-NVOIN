@@ -8,6 +8,8 @@ python-dotenv>=1.0.0
 # LLM Backend Clients & API Wrappers
 openai>=1.12.0
 httpx>=0.26.0
+fastapi>=0.109.0
+uvicorn>=0.27.0
 
 # Training & Fine-Tuning Dependencies (For Gemma 4 12B Fugu Manager)
 torch>=2.2.0
