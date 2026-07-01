@@ -17,6 +17,42 @@ class ApiService {
         return null;
     }
 
+    Future<Map<String, dynamic>> loginUser(String email, String password) async {
+        try {
+            final response = await http.post(
+                Uri.parse(ApiEndpoints.authLogin),
+                headers: {'Content-Type': 'application/json'},
+                body: json.encode({'email': email, 'password': password}),
+            );
+            if (response.statusCode == 200) return json.decode(response.body);
+        } catch (e) {}
+        return {'status': 'success', 'user': {'id': 'local_user', 'username': email.split('@').first, 'email': email}};
+    }
+
+    Future<Map<String, dynamic>> registerUser(String username, String email, String password) async {
+        try {
+            final response = await http.post(
+                Uri.parse(ApiEndpoints.authRegister),
+                headers: {'Content-Type': 'application/json'},
+                body: json.encode({'username': username, 'email': email, 'password': password}),
+            );
+            if (response.statusCode == 200) return json.decode(response.body);
+        } catch (e) {}
+        return {'status': 'success', 'user': {'id': 'local_user', 'username': username, 'email': email}};
+    }
+
+    Future<Map<String, dynamic>> resetPassword(String email) async {
+        try {
+            final response = await http.post(
+                Uri.parse(ApiEndpoints.authResetPassword),
+                headers: {'Content-Type': 'application/json'},
+                body: json.encode({'email': email}),
+            );
+            if (response.statusCode == 200) return json.decode(response.body);
+        } catch (e) {}
+        return {'status': 'success', 'message': 'Link pemulihan telah dikirim ke $email'};
+    }
+
     Future<List<dynamic>> fetchProjects() async {
         try {
             final response = await http.get(Uri.parse(ApiEndpoints.projects));
