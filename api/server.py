@@ -135,7 +135,15 @@ def handle_chat(req: ChatRequest):
     att_list = [att.dict() for att in req.attachments] if req.attachments else None
 
     # Eksekusi orchestrator Nvoin dengan lampiran multimodal (Images, Mentions, Action, Browser)
-    response_text = orchestrator.run(req.prompt, session_id=session_id, attachments=att_list)
+    if req.mode == 'direct':
+        from core.message import Message, MessageRole
+        fast_msg = [
+            Message(role=MessageRole.SYSTEM, content="Anda adalah Nvoin AI (Fast Direct Mode untuk RTX 3050 & RAM 8GB). Jawablah secara langsung, cepat, ringkas, dan akurat tanpa deep thinking berlebihan atau tag <think>."),
+            Message(role=MessageRole.USER, content=req.prompt)
+        ]
+        response_text = orchestrator.llm.generate(fast_msg, temperature=0.3)
+    else:
+        response_text = orchestrator.run(req.prompt, session_id=session_id, attachments=att_list)
 
     # Ekstrak riwayat subagent log langsung dari state orkestrasi
     subagent_logs = []

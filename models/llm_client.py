@@ -1,4 +1,5 @@
 import json
+import re
 import httpx
 from typing import List, Dict, Any, Optional
 from core.config import LLMConfig
@@ -14,9 +15,19 @@ class LLMClient:
         payload_messages = [m.to_llm_dict(backend=self.config.backend) for m in messages]
 
         if self.config.backend.lower() == "ollama":
-            return self._call_ollama(payload_messages, temp, tools)
+            res = self._call_ollama(payload_messages, temp, tools)
         else:
-            return self._call_openai_compatible(payload_messages, temp, tools)
+            res = self._call_openai_compatible(payload_messages, temp, tools)
+        return self.clean_deep_think_tags(res)
+
+    def clean_deep_think_tags(self, content: str) -> str:
+        """Membersihkan atau menyembunyikan log deep thinking (<think>...</think>) berlebih agar respons cepat & ringkas."""
+        if not content:
+            return ""
+        # Jika keluaran berupa JSON decision manager, biarkan utuh
+        if "{" in content and "action" in content:
+            return content
+        return re.sub(r'<think>.*?</think>', '', content, flags=re.DOTALL).strip()
 
     def _call_ollama(self, messages: List[Dict[str, Any]], temperature: float, tools: Optional[List[Dict[str, Any]]]) -> str:
         url = f"{self.config.base_url.rstrip('/')}/api/chat"
@@ -24,7 +35,13 @@ class LLMClient:
             "model": self.config.model_name,
             "messages": messages,
             "stream": False,
-            "options": {"temperature": temperature}
+            "options": {
+                "temperature": temperature,
+                "num_ctx": getattr(self.config, "num_ctx", 2048),
+                "num_predict": getattr(self.config, "num_predict", 1024),
+                "low_vram": getattr(self.config, "low_vram", True),
+                "num_gpu": getattr(self.config, "num_gpu", 24),
+            }
         }
         if tools:
             payload["tools"] = tools

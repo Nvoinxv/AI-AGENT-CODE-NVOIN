@@ -59,7 +59,7 @@ ATURAN PENGAMBILAN KEPUTUSAN (Wajib format JSON murni dengan atribut "confidence
   "response": "Jawaban lengkap dan rapi kepada pengguna..."
 }}
 
-Berikan HANYA format JSON yang valid tanpa teks tambahan di luar JSON.
+Berikan HANYA format JSON yang valid langsung tanpa teks atau analisis deep thinking (<think>) berlebihan agar hemat komputasi memori GPU.
 """
 
 # Alias kompatibilitas
