@@ -133,14 +133,63 @@ class DashboardScreen extends StatelessWidget {
                             const SizedBox(width: 24),
                             const Text('Help & Support', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
                             const SizedBox(width: 24),
-                            Container(
-                                width: 32, height: 32,
-                                decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(color: AppColors.primaryNeon),
-                                    color: AppColors.surfaceCard,
+                            PopupMenuButton<String>(
+                                tooltip: 'Profil Pengguna',
+                                offset: const Offset(0, 45),
+                                color: AppColors.surfaceDark,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: const BorderSide(color: AppColors.glassBorder)),
+                                onSelected: (val) {
+                                    if (val == 'logout') {
+                                        controller.logout();
+                                    }
+                                },
+                                itemBuilder: (ctx) => [
+                                    PopupMenuItem<String>(
+                                        enabled: false,
+                                        child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                                Text(controller.currentUsername, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                                                Text(controller.currentUserEmail, style: const TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+                                            ],
+                                        ),
+                                    ),
+                                    const PopupMenuDivider(height: 1),
+                                    const PopupMenuItem<String>(
+                                        value: 'logout',
+                                        child: Row(
+                                            children: [
+                                                Icon(LucideIcons.logOut, color: Colors.redAccent, size: 16),
+                                                SizedBox(width: 10),
+                                                Text('Keluar (Log Out)', style: TextStyle(color: Colors.redAccent, fontSize: 13, fontWeight: FontWeight.w600)),
+                                            ],
+                                        ),
+                                    ),
+                                ],
+                                child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                    decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(color: AppColors.primaryNeon),
+                                        color: AppColors.surfaceCard,
+                                    ),
+                                    child: Row(
+                                        children: [
+                                            CircleAvatar(
+                                                radius: 12,
+                                                backgroundColor: AppColors.primaryNeon.withOpacity(0.2),
+                                                child: Text(
+                                                    controller.currentUsername.isNotEmpty ? controller.currentUsername[0].toUpperCase() : 'N',
+                                                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primaryNeon),
+                                                ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(controller.currentUsername, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
+                                            const SizedBox(width: 4),
+                                            const Icon(LucideIcons.chevronDown, color: Colors.white54, size: 14),
+                                        ],
+                                    ),
                                 ),
-                                child: const Center(child: Text('NV', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white))),
                             ),
                         ],
                     ),

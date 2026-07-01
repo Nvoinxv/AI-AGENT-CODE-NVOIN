@@ -12,6 +12,10 @@ class AgentController extends ChangeNotifier {
     List<ProjectModel> projects = [];
     ProjectModel? currentProject;
 
+    bool isLoggedIn = false;
+    String currentUsername = 'Developer';
+    String currentUserEmail = 'dev@nvoin.ai';
+
     bool isLoading = false;
     String currentSessionId = 'nvoin_session_01';
     SystemStatus? systemStatus;
@@ -24,6 +28,46 @@ class AgentController extends ChangeNotifier {
     Future<void> init() async {
         systemStatus = await _apiService.checkStatus();
         await loadProjects();
+        notifyListeners();
+    }
+
+    Future<bool> login(String email, String password) async {
+        isLoading = true;
+        notifyListeners();
+        final res = await _apiService.loginUser(email, password);
+        isLoading = false;
+        if (res['status'] == 'success') {
+            isLoggedIn = true;
+            final user = res['user'] ?? {};
+            currentUsername = user['username'] ?? email.split('@').first;
+            currentUserEmail = user['email'] ?? email;
+            notifyListeners();
+            return true;
+        }
+        notifyListeners();
+        return false;
+    }
+
+    Future<bool> register(String username, String email, String password) async {
+        isLoading = true;
+        notifyListeners();
+        final res = await _apiService.registerUser(username, email, password);
+        isLoading = false;
+        if (res['status'] == 'success') {
+            isLoggedIn = true;
+            final user = res['user'] ?? {};
+            currentUsername = user['username'] ?? username;
+            currentUserEmail = user['email'] ?? email;
+            notifyListeners();
+            return true;
+        }
+        notifyListeners();
+        return false;
+    }
+
+    void logout() {
+        isLoggedIn = false;
+        messages.clear();
         notifyListeners();
     }
 
