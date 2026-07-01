@@ -45,7 +45,7 @@ def bootstrap_agent_code() -> AgentOrchestrator:
 def main():
     os_info = get_os_info()
     print("=================================================================")
-    print("      AI AGENT CODE (Fugu Architecture - Open Source LLM)        ")
+    print("       NVOIN AI AGENT CODE (Multi-Agent & Multimodal LLM)        ")
     print("=================================================================")
     print(f"Lingkungan Terdeteksi : {os_info['os_name']} ({os_info['machine']})")
     print(f"Terminal / Shell      : {os_info['shell']}")

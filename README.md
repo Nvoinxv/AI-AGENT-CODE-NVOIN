@@ -1,71 +1,53 @@
-# AI AGENT CODE (Fugu Architecture for Gemma 4 12B)
+# NVOIN AI AGENT CODE (Multi-Agent & Multimodal Architecture for Gemma 4 12B)
 
-**AI AGENT CODE** adalah sistem agen otonom berbasis Python untuk eksekusi pemrograman (seperti Claude Code atau AntiGravity) yang menggunakan arsitektur orkestrasi multi-agen terinspirasi dari **Sakana Fugu**.
+**NVOIN AI** adalah sistem agen otonom berbasis Python & Flutter untuk eksekusi pemrograman profesional, analisis gambar/multimodal, web browsing, dan eksekusi terminal (mendukung penuh **Windows** dan **Linux Arch**).
 
-## Arsitektur Fugu AI (Masquerade as a Single Model)
-Dari sudut pandang pengguna (CLI / API), sistem ini berfungsi dan terasa seperti **satu model AI tunggal**. Anda hanya cukup mengirim instruksi pemecahan masalah atau pembuatan fitur lewat satu antarmuka prompt.
+## Arsitektur Nvoin AI (Masquerade as a Single Model)
+Dari sudut pandang pengguna (CLI maupun Frontend Flutter GUI), sistem ini berfungsi dan terasa seperti **satu model AI tunggal yang sangat cerdas**. Anda cukup mengirim instruksi pemrograman, mengunggah gambar mockup, atau menyebutkan file/folder lewat antarmuka prompt.
 
-Di balik layar, model utama (**Fugu Manager**) yang dilatih khusus (misalnya fine-tuning pada **Gemma 4 12B**) bertindak sebagai *Experienced Project Manager*:
+Di balik layar, model utama (**Nvoin Manager**) yang disiapkan untuk model open source sekelas **Gemma 4 12B** bertindak sebagai *Experienced Project Manager*:
 1. **Direct Answer**: Menjawab langsung jika instruksi bersifat konseptual atau sederhana.
 2. **Delegation / Dispatch**: Meminta bantuan tim agen spesialis jika instruksi kompleks:
-   - **PlannerAgent**: Merancang struktur, memecah masalah, dan membuat rencana implementasi.
-   - **CoderAgent**: Menulis, mengedit, dan memodifikasi kode program di sistem berkas.
-   - **ExecutorAgent**: Menjalankan perintah terminal, pengujian unit (unit test), dan menangkap log output/error.
-   - **ReviewerAgent**: Mengaudit keamanan kode, kualitas eksekusi, dan menganalisis kesalahan (debugging).
-3. **Iterative Self-Correction Loop**: Jika eksekusi gagal atau mengalami error di terminal, Manajer secara otomatis memanggil ulang agen terkait untuk memperbaiki kesalahan hingga tuntas.
+   - **PlannerAgent**: Merancang arsitektur dan memecah masalah coding.
+   - **CoderAgent**: Menulis dan mengedit berkas kode di sistem berkas secara relatif maupun absolut.
+   - **ExecutorAgent**: Menjalankan perintah terminal (PowerShell di Windows, Bash di Arch Linux) serta unit testing.
+   - **ReviewerAgent**: Mengaudit keamanan kode, menganalisis gambar/mockup UI, dan melakukan debugging.
+3. **Iterative Self-Correction Loop**: Memperbaiki error eksekusi secara otomatis hingga tuntas.
 
 ---
 
-## Struktur Direktori
+## Struktur Proyek
 
 ```text
 AI_AGENT_CODE/
-├── core/             # Logika inti Manajer Orkestrator Fugu, State, & Message
-├── agents/           # Sub-agen spesialis (Planner, Coder, Executor, Reviewer)
-├── tools/            # Pustaka fungsionalitas (File Tools, Search Tools, Terminal Runner)
-├── models/           # Unified LLM Client (vLLM, Ollama, OpenAI-compatible) & Prompts
-├── training/         # Pipeline pembuat dataset sintetik & QLoRA Fine-tuning Gemma 12B
-├── cli/              # Antarmuka interaktif CLI terpadu
-└── requirements.txt  # Daftar dependensi Python
+├── api/                  # [NEW] Python FastAPI Bridge untuk antarmuka Frontend GUI
+├── frontend_ai_agent_code/# [NEW] Aplikasi Desktop/Web Flutter Nvoin AI
+├── core/                 # Logika Inti Nvoin Manager, OS Detection, State, & Message
+├── agents/               # Sub-agen spesialis (Planner, Coder, Executor, Reviewer)
+├── tools/                # Pustaka alat (File Read/Write, Grep/List, Terminal Runner)
+├── models/               # Unified LLM Client (Ollama/vLLM/OpenAI) & Prompts
+├── training/             # Pipeline QLoRA Fine-tuning khusus model 12B
+├── cli/                  # Antarmuka CLI terpadu
+├── run_windows.ps1       # Launcher otomatis Windows PowerShell
+├── run_windows.bat       # Launcher otomatis Windows CMD
+└── run_arch_linux.sh     # Launcher otomatis Arch Linux Bash
 ```
 
 ---
 
-## Panduan Penggunaan
+## Panduan Penggunaan Cepat
 
-### 1. Instalasi Dependensi
+### 1. Menjalankan CLI Mode (Terminal)
+- **Di Windows**: Jalankan `.\run_windows.ps1` atau `run_windows.bat`
+- **Di Arch Linux**: Jalankan `./run_arch_linux.sh`
+
+### 2. Menjalankan Backend API Server & Frontend Flutter
+Jalankan server bridge Python:
 ```bash
-pip install -r requirements.txt
+python -m api.server
 ```
-
-### 2. Konfigurasi Environment Variable
-Buat berkas `.env` atau atur variabel lingkungan untuk endpoint LLM open-source Anda (misalnya Ollama lokal atau vLLM):
+Lalu jalankan aplikasi Flutter di folder `frontend_ai_agent_code`:
 ```bash
-LLM_BACKEND=ollama
-OLLAMA_MODEL=gemma4:12b
-OLLAMA_BASE_URL=http://localhost:11434
+cd frontend_ai_agent_code
+flutter run -d windows   # Atau -d linux / -d chrome
 ```
-
-### 3. Menjalankan CLI Agent
-```bash
-python -m cli.main
-```
-
----
-
-## Pelatihan Khusus Model Manajer (Gemma 4 12B)
-
-Untuk melatih model open-source agar jago menjadi "Manajer Fugu" (memahami kapan harus menjawab langsung, mendelegasikan ke sub-agen, atau mengulang eksekusi), gunakan pipeline di folder `training/`:
-
-1. **Generate Dataset Sintetik**:
-   ```bash
-   python -m training.dataset_generator --output data/synthetic_fugu_trajectories.json
-   ```
-2. **Format Dataset ke ShareGPT/SFT**:
-   ```bash
-   python -m training.format_dataset --input data/synthetic_fugu_trajectories.json --output data/gemma_sft.jsonl
-   ```
-3. **Jalankan QLoRA Fine-Tuning**:
-   ```bash
-   python -m training.train_gemma_lora --dataset data/gemma_sft.jsonl --model_name google/gemma-4-12b
-   ```
