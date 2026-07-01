@@ -9,6 +9,7 @@ from models.llm_client import LLMClient
 from tools.file_tools import ReadFileTool, WriteFileTool
 from tools.search_tools import ListDirectoryTool, GrepSearchTool
 from tools.terminal_tools import TerminalRunTool
+from tools.web_tools import FetchWebPageTool
 
 from agents.planner_agent import PlannerAgent
 from agents.coder_agent import CoderAgent
@@ -28,7 +29,8 @@ def bootstrap_agent_code() -> AgentOrchestrator:
         WriteFileTool(workspace, allow_outside_workspace=True),
         ListDirectoryTool(workspace, allow_outside_workspace=True),
         GrepSearchTool(workspace, allow_outside_workspace=True),
-        TerminalRunTool(workspace)
+        TerminalRunTool(workspace),
+        FetchWebPageTool()
     ]
 
     # Buat tim sub-agen spesialis

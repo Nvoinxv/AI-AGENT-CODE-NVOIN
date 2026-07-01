@@ -63,12 +63,14 @@ def startup_event():
     llm = LLMClient(config.llm)
 
     workspace = config.agent.workspace_dir
+    from tools.web_tools import FetchWebPageTool
     shared_tools = [
         ReadFileTool(workspace, allow_outside_workspace=True),
         WriteFileTool(workspace, allow_outside_workspace=True),
         ListDirectoryTool(workspace, allow_outside_workspace=True),
         GrepSearchTool(workspace, allow_outside_workspace=True),
-        TerminalRunTool(workspace)
+        TerminalRunTool(workspace),
+        FetchWebPageTool()
     ]
 
     agents = {
@@ -99,19 +101,22 @@ def handle_chat(req: ChatRequest):
 
     session_id = req.session_id or str(uuid.uuid4())[:8]
 
-    # Rakit prompt beserta lampiran multimodal jika ada
-    full_prompt = req.prompt
-    if req.attachments:
-        full_prompt += "\n\n=== LAMPIRAN MULTIMODAL & FITUR TAMBAHAN ==="
-        for att in req.attachments:
-            full_prompt += f"\n[{att.type.upper()}]: {att.content}"
+    # Rakit daftar lampiran untuk diproses oleh MultimodalHandler Nvoin AI
+    att_list = [att.dict() for att in req.attachments] if req.attachments else None
 
-    # Eksekusi orchestrator Nvoin
-    response_text = orchestrator.run(full_prompt, session_id=session_id)
+    # Eksekusi orchestrator Nvoin dengan lampiran multimodal (Images, Mentions, Action, Browser)
+    response_text = orchestrator.run(req.prompt, session_id=session_id, attachments=att_list)
 
-    # Ekstrak riwayat subagent log jika ada dalam state
-    # Untuk simulasi API response yang profesional:
+    # Ekstrak riwayat subagent log langsung dari state orkestrasi
     subagent_logs = []
+    if session_id in orchestrator.sessions:
+        for res in orchestrator.sessions[session_id].subagent_results:
+            subagent_logs.append(SubagentLog(
+                agent_name=res.subagent_name,
+                task_prompt=res.task_prompt,
+                output=res.output,
+                success=res.success
+            ))
     return ChatResponse(
         session_id=session_id,
         response=response_text,

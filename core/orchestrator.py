@@ -1,11 +1,12 @@
 import json
 import uuid
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from core.config import SystemConfig
 from core.message import Message, MessageRole
 from core.state import ExecutionState, SubagentResult
 from models.llm_client import LLMClient
 from models.prompts import FUGU_MANAGER_PROMPT
+from core.multimodal_handler import MultimodalHandler
 
 class AgentOrchestrator:
     """
@@ -17,14 +18,19 @@ class AgentOrchestrator:
         self.config = config
         self.llm = llm_client
         self.agents = agents  # Dict berisi: 'planner', 'coder', 'executor', 'reviewer'
+        self.multimodal_handler = MultimodalHandler(config.agent.workspace_dir)
 
-    def run(self, user_prompt: str, session_id: str = None) -> str:
+    def run(self, user_prompt: str, session_id: str = None, attachments: Optional[list] = None) -> str:
         """Entry point utama untuk antarmuka pengguna."""
         if not session_id:
             session_id = str(uuid.uuid4())[:8]
 
         state = ExecutionState(session_id=session_id)
-        state.add_message(Message(role=MessageRole.USER, content=user_prompt))
+        
+        # 1. Pra-pemrosesan Multimodal & Resolusi Mentions
+        enriched_prompt, images_list = self.multimodal_handler.process_input(user_prompt, attachments)
+        
+        state.add_message(Message(role=MessageRole.USER, content=enriched_prompt, images=images_list))
 
         print(f"\n[Fugu Orchestrator] Menerima instruksi (Session: {session_id})...")
 
