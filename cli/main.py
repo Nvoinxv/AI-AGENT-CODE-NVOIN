@@ -4,6 +4,7 @@ from pathlib import Path
 
 from core.config import get_config
 from core.orchestrator import AgentOrchestrator
+from core.os_utils import get_os_info
 from models.llm_client import LLMClient
 from tools.file_tools import ReadFileTool, WriteFileTool
 from tools.search_tools import ListDirectoryTool, GrepSearchTool
@@ -20,21 +21,21 @@ def bootstrap_agent_code() -> AgentOrchestrator:
 
     llm = LLMClient(config.llm)
 
-    # Siapkan tools untuk sub-agen
+    # Siapkan tools untuk sub-agen dengan izin akses path absolut maupun relatif workspace
     workspace = config.agent.workspace_dir
     shared_tools = [
-        ReadFileTool(workspace),
-        WriteFileTool(workspace),
-        ListDirectoryTool(workspace),
-        GrepSearchTool(workspace),
+        ReadFileTool(workspace, allow_outside_workspace=True),
+        WriteFileTool(workspace, allow_outside_workspace=True),
+        ListDirectoryTool(workspace, allow_outside_workspace=True),
+        GrepSearchTool(workspace, allow_outside_workspace=True),
         TerminalRunTool(workspace)
     ]
 
     # Buat tim sub-agen spesialis
     agents = {
-        "planner": PlannerAgent(llm, tools=shared_tools[:4]), # Planner tidak butuh run terminal
+        "planner": PlannerAgent(llm, tools=shared_tools[:4]),
         "coder": CoderAgent(llm, tools=shared_tools),
-        "executor": ExecutorAgent(llm, tools=[ReadFileTool(workspace), TerminalRunTool(workspace)]),
+        "executor": ExecutorAgent(llm, tools=[ReadFileTool(workspace, allow_outside_workspace=True), TerminalRunTool(workspace)]),
         "reviewer": ReviewerAgent(llm, tools=shared_tools)
     }
 
@@ -42,9 +43,13 @@ def bootstrap_agent_code() -> AgentOrchestrator:
     return orchestrator
 
 def main():
+    os_info = get_os_info()
     print("=================================================================")
     print("      AI AGENT CODE (Fugu Architecture - Open Source LLM)        ")
     print("=================================================================")
+    print(f"Lingkungan Terdeteksi : {os_info['os_name']} ({os_info['machine']})")
+    print(f"Terminal / Shell      : {os_info['shell']}")
+    print(f"Package Manager       : {os_info['package_manager']}")
     print("Masquerade as a single model: Dari luar terlihat seperti 1 AI.")
     print("Ketik 'exit' atau 'quit' untuk mengakhiri sesi.\n")
 
