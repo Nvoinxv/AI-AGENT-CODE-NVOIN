@@ -6,4 +6,6 @@ class ApiEndpoints {
     static const String status = '$baseUrl/status';
     static const String chat = '$baseUrl/chat';
     static const String workspaceFiles = '$baseUrl/workspace/files';
+    static const String projects = '$baseUrl/projects';
+    static String chatHistory(String projectId) => '$baseUrl/chat/history/$projectId';
 }

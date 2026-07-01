@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/chat_message.dart';
 import '../models/system_status.dart';
+import '../models/project_model.dart';
 import '../services/api_service.dart';
 
 class AgentController extends ChangeNotifier {
@@ -8,6 +9,9 @@ class AgentController extends ChangeNotifier {
 
     List<ChatMessage> messages = [];
     List<MultimodalAttachment> pendingAttachments = [];
+    List<ProjectModel> projects = [];
+    ProjectModel? currentProject;
+
     bool isLoading = false;
     String currentSessionId = 'nvoin_session_01';
     SystemStatus? systemStatus;
@@ -19,6 +23,31 @@ class AgentController extends ChangeNotifier {
 
     Future<void> init() async {
         systemStatus = await _apiService.checkStatus();
+        await loadProjects();
+        notifyListeners();
+    }
+
+    Future<void> loadProjects() async {
+        final list = await _apiService.fetchProjects();
+        projects = list.map((item) => ProjectModel.fromJson(item as Map<String, dynamic>)).toList();
+        if (projects.isNotEmpty && currentProject == null) {
+            currentProject = projects.first;
+        }
+        notifyListeners();
+    }
+
+    Future<void> createAndSelectProject(String name, String path, String os) async {
+        final res = await _apiService.createProject(name, path, os);
+        final newProj = ProjectModel.fromJson(res);
+        projects.add(newProj);
+        currentProject = newProj;
+        messages.clear();
+        notifyListeners();
+    }
+
+    void selectProject(ProjectModel proj) {
+        currentProject = proj;
+        messages.clear();
         notifyListeners();
     }
 
@@ -66,6 +95,7 @@ class AgentController extends ChangeNotifier {
         final res = await _apiService.sendChatMessage(
             prompt: text,
             sessionId: currentSessionId,
+            projectId: currentProject?.id,
             attachments: attachmentsToSend,
             mode: selectedMode,
         );

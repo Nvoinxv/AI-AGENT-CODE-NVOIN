@@ -8,6 +8,7 @@ import '../widgets/dashboard/hero_welcome.dart';
 import '../widgets/dashboard/quick_action_card.dart';
 import '../widgets/chat/prompt_input_bar.dart';
 import '../widgets/chat/message_bubble.dart';
+import '../widgets/common/project_selector_dialog.dart';
 
 class DashboardScreen extends StatelessWidget {
     const DashboardScreen({super.key});

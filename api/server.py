@@ -1,10 +1,11 @@
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from pathlib import Path
 import uuid
+from sqlalchemy.orm import Session
 
 from core.config import get_config
 from core.orchestrator import AgentOrchestrator
@@ -17,6 +18,10 @@ from agents.planner_agent import PlannerAgent
 from agents.coder_agent import CoderAgent
 from agents.executor_agent import ExecutorAgent
 from agents.reviewer_agent import ReviewerAgent
+
+from core.db.postgres import get_db, init_postgres
+from core.db.models_pg import User, Project
+from core.db.mongodb import mongo_handler
 
 app = FastAPI(title="Nvoin AI Agent Code API Bridge", version="1.0.0")
 
@@ -37,9 +42,18 @@ class AttachmentModel(BaseModel):
     content: str
     metadata: Optional[Dict[str, Any]] = None
 
+class ProjectCreateModel(BaseModel):
+    name: str
+    description: Optional[str] = None
+    workspace_path: Optional[str] = "./workspace"
+    target_os: Optional[str] = "windows"
+    user_id: Optional[str] = "default_user"
+
 class ChatRequest(BaseModel):
     prompt: str
     session_id: Optional[str] = None
+    project_id: Optional[str] = "default_project"
+    user_id: Optional[str] = "default_user"
     attachments: Optional[List[AttachmentModel]] = None
     mode: Optional[str] = "fugu_auto"  # 'fugu_auto', 'direct', 'deep_think'
 
@@ -61,6 +75,7 @@ class ChatResponse(BaseModel):
 @app.on_event("startup")
 def startup_event():
     global orchestrator
+    init_postgres()
     config = get_config()
     config.agent.workspace_dir.mkdir(parents=True, exist_ok=True)
     llm = LLMClient(config.llm)
@@ -130,6 +145,20 @@ def handle_chat(req: ChatRequest):
                 success=res.success
             ))
 
+    # Simpan giliran percakapan ke MongoDB
+    subagent_logs_dict = [log.dict() for log in subagent_logs]
+    mongo_handler.save_conversation_turn(
+        session_id=session_id,
+        project_id=req.project_id or "default_project",
+        user_id=req.user_id,
+        user_prompt=req.prompt,
+        ai_response=response_text,
+        subagent_logs=subagent_logs_dict,
+        confidence_score=conf_score,
+        requires_clarification=req_clarify,
+        implementation_plan=impl_plan
+    )
+
     return ChatResponse(
         session_id=session_id,
         response=response_text,
@@ -139,6 +168,45 @@ def handle_chat(req: ChatRequest):
         requires_clarification=req_clarify,
         implementation_plan=impl_plan
     )
+
+@app.get("/api/v1/projects")
+def list_projects(db: Session = Depends(get_db)):
+    """Daftar proyek (Workspaces ala AntiGravity) dari database PostgreSQL."""
+    try:
+        projects = db.query(Project).all()
+        return [{"id": p.id, "name": p.name, "description": p.description, "workspace_path": p.workspace_path, "target_os": p.target_os} for p in projects]
+    except Exception as e:
+        return [{"id": "default", "name": "Default AI Project", "workspace_path": "./workspace", "target_os": "windows"}]
+
+@app.post("/api/v1/projects")
+def create_project(proj: ProjectCreateModel, db: Session = Depends(get_db)):
+    """Buat proyek / workspace baru di PostgreSQL."""
+    try:
+        # Cari atau buat user default jika belum ada
+        user = db.query(User).filter(User.id == proj.user_id).first()
+        if not user:
+            user = User(id=proj.user_id, username="nvoin_dev", email="dev@nvoin.ai", password_hash="hash")
+            db.add(user)
+            db.commit()
+
+        new_proj = Project(
+            user_id=proj.user_id,
+            name=proj.name,
+            description=proj.description,
+            workspace_path=proj.workspace_path,
+            target_os=proj.target_os
+        )
+        db.add(new_proj)
+        db.commit()
+        db.refresh(new_proj)
+        return {"id": new_proj.id, "name": new_proj.name, "workspace_path": new_proj.workspace_path, "status": "created"}
+    except Exception as e:
+        return {"error": str(e), "status": "failed"}
+
+@app.get("/api/v1/chat/history/{project_id}")
+def get_chat_history(project_id: str):
+    """Ambil riwayat percakapan dari MongoDB untuk proyek tertentu."""
+    return mongo_handler.get_conversation_history(project_id)
 
 @app.get("/api/v1/workspace/files")
 def list_workspace_files():

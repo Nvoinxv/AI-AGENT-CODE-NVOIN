@@ -1,30 +1,66 @@
 version: '3.8'
 
 services:
-  # Layanan LLM Open-Source Backend (Ollama) untuk melayani model seperti Gemma 4 12B
+  # 1. Database Relasional PostgreSQL (Akun Pengguna & Manajemen Proyek)
+  postgres:
+    image: postgres:16-alpine
+    container_name: nvoin_postgres
+    environment:
+      POSTGRES_USER: nvoin_admin
+      POSTGRES_PASSWORD: nvoin_secret_password
+      POSTGRES_DB: nvoin_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+
+  # 2. Database Dokumen MongoDB (Riwayat Percakapan & Log Subagent Multimodal)
+  mongodb:
+    image: mongo:7.0
+    container_name: nvoin_mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: nvoin_admin
+      MONGO_INITDB_ROOT_PASSWORD: nvoin_secret_password
+      MONGO_INITDB_DATABASE: nvoin_chat_db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    restart: always
+
+  # 3. Layanan LLM Open-Source Backend (Ollama) untuk Gemma 4 12B
   ollama:
     image: ollama/ollama:latest
-    container_name: fugu_ollama_backend
+    container_name: nvoin_ollama_backend
     ports:
       - "11434:11434"
     volumes:
       - ollama_storage:/root/.ollama
     restart: always
 
-  # Layanan AI Agent Code CLI/Orchestrator
-  agent-code:
+  # 4. Layanan Nvoin AI API Bridge & Orchestrator
+  nvoin-api:
     build: .
-    container_name: fugu_ai_agent_code
+    container_name: nvoin_api_server
     environment:
-      - LLM_BACKEND=ollama
-      - OLLAMA_MODEL=gemma4:12b
-      - OLLAMA_BASE_URL=http://ollama:11434
+      - LLM_PROVIDER=ollama
+      - LLM_MODEL=gemma4:12b
+      - LLM_BASE_URL=http://ollama:11434
+      - POSTGRES_URI=postgresql://nvoin_admin:nvoin_secret_password@postgres:5432/nvoin_db
+      - MONGODB_URI=mongodb://nvoin_admin:nvoin_secret_password@mongodb:27017/?authSource=admin
+      - MONGODB_DB=nvoin_chat_db
+    ports:
+      - "8000:8000"
     volumes:
-      - ./workspace:/app/workspace  # Ruang kerja sandbox untuk eksekusi kode agen
+      - ./workspace:/app/workspace
     depends_on:
+      - postgres
+      - mongodb
       - ollama
-    stdin_open: true
-    tty: true
+    restart: always
 
 volumes:
+  postgres_data:
+  mongo_data:
   ollama_storage:
