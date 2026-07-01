@@ -5,13 +5,13 @@ from core.config import LLMConfig
 from core.message import Message
 
 class LLMClient:
-    """Klien universal untuk menghubungkan Orchestrator/Subagent ke backend LLM open source (Ollama/vLLM/OpenAI format)."""
+    """Klien universal untuk menghubungkan Nvoin AI ke backend LLM open source (Ollama/vLLM dengan dukungan Multimodal)."""
     def __init__(self, config: LLMConfig):
         self.config = config
 
     def generate(self, messages: List[Message], temperature: Optional[float] = None, tools: Optional[List[Dict[str, Any]]] = None) -> str:
         temp = temperature if temperature is not None else self.config.temperature
-        payload_messages = [m.to_llm_dict() for m in messages]
+        payload_messages = [m.to_llm_dict(backend=self.config.backend) for m in messages]
 
         if self.config.backend.lower() == "ollama":
             return self._call_ollama(payload_messages, temp, tools)
