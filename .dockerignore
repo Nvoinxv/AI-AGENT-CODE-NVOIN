@@ -1,0 +1,55 @@
+# ==========================================
+# NVOIN AI AGENT CODE - DOCKERIGNORE
+# ==========================================
+
+# Git & Version Control
+.git/
+.gitignore
+.gitattributes
+
+# Kredensial & Berkas Sensitif
+.env
+.env.*
+secrets.json
+*.key
+*.pem
+
+# Python & Virtual Environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+.venv_arch/
+venv/
+env/
+.pytest_cache/
+*.egg-info/
+
+# Model Weights & Training Checkpoints (Jangan masukkan ke container build image biasa)
+*.gguf
+*.safetensors
+*.bin
+lora_output/
+checkpoints/
+
+# Workspace & AI Logs
+workspace/
+brain/
+*.log
+
+# Flutter Frontend & Build Artifacts
+frontend_ai_agent_code/build/
+frontend_ai_agent_code/.dart_tool/
+frontend_ai_agent_code/.flutter-plugins
+frontend_ai_agent_code/.flutter-plugins-dependencies
+frontend_ai_agent_code/windows/flutter/ephemeral/
+frontend_ai_agent_code/linux/flutter/ephemeral/
+
+# Dokumentasi & Editor
+.vscode/
+.idea/
+*.md
+!README.md
+.DS_Store
+Thumbs.db

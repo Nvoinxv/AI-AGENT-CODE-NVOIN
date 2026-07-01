@@ -1,0 +1,108 @@
+# ==========================================
+# NVOIN AI AGENT CODE - GITIGNORE
+# ==========================================
+
+# --- 1. Kredensial & Berkas Sensitif ---
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+secrets.json
+api_keys.yaml
+config/credentials.json
+
+# --- 2. Lingkungan Python & Virtual Environment ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.pyd
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual Environments
+.venv/
+.venv_arch/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# --- 3. Bobot Model LLM, Checkpoint & Training ---
+*.bin
+*.safetensors
+*.gguf
+*.pt
+*.pth
+*.onnx
+lora_output/
+checkpoints/
+runs/
+wandb/
+
+# --- 4. Workspace & Data Sementara AI Agent ---
+workspace/
+scratch/
+brain/
+*.log
+*.jsonl
+
+# --- 5. Flutter / Dart Frontend ---
+frontend_ai_agent_code/.dart_tool/
+frontend_ai_agent_code/.flutter-plugins
+frontend_ai_agent_code/.flutter-plugins-dependencies
+frontend_ai_agent_code/.packages
+frontend_ai_agent_code/.pub-cache/
+frontend_ai_agent_code/.pub/
+frontend_ai_agent_code/build/
+frontend_ai_agent_code/coverage/
+*.lock
+!pubspec.lock
+
+# Android & iOS Flutter Build
+**/android/.gradle/
+**/android/app/build/
+**/android/local.properties
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/windows/flutter/ephemeral/
+**/linux/flutter/ephemeral/
+
+# --- 6. Editor & Sistem Operasi ---
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
