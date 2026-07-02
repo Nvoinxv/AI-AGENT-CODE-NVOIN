@@ -9,7 +9,7 @@ from tools.web_tools import FetchWebPageTool
 class MultimodalHandler:
     """
     Pra-pemroses pintar untuk Nvoin AI.
-    Menyelesaikan mentions (@file, @folder), memuat gambar (base64) untuk Gemma 4 12B Vision,
+    Menyelesaikan mentions (@file, @folder), memuat gambar (base64) untuk Gemini & Gemma Vision,
     dan mengeksekusi fetch browser sebelum prompt dikirim ke Manajer/Sub-Agen.
     """
     def __init__(self, workspace_dir: Path):

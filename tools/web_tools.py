@@ -41,7 +41,7 @@ class FetchWebPageTool(BaseTool):
             url = "https://" + url
 
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) NvoinAI/1.0 (Gemma4-12B Agent)'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) NvoinAI/2.0 (Cloud Agent)'
         }
         
         try:

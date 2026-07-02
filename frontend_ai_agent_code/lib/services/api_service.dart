@@ -91,7 +91,7 @@ class ApiService {
         String? sessionId,
         String? projectId,
         List<MultimodalAttachment>? attachments,
-        String mode = 'fugu_auto',
+        String mode = 'auto',
     }) async {
         try {
             final payload = {
@@ -116,7 +116,7 @@ class ApiService {
 
         return {
             'session_id': sessionId ?? 'demo_session',
-            'response': '=== [Simulasi Nvoin AI Agent Code - Gemma 4 12B] ===\n'
+            'response': '=== [Simulasi Nvoin AI Agent Code - Gemini & Gemma 31B] ===\n'
                 'Instruksi Anda: "$prompt"\n\n'
                 'Manajer Nvoin telah mengevaluasi permintaan ini (Tersimpan di MongoDB). '
                 'Jika server FastAPI aktif, eksekusi kode akan berlangsung di workspace proyek!',
