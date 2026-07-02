@@ -1,45 +1,26 @@
-# Panduan & Arsitektur Optimasi Perangkat Keras Nvoin AI
+# Panduan Optimasi Perangkat Keras Nvoin AI (Migrasi Cloud API)
 ## Khusus Spesifikasi Ringan: NVIDIA RTX 3050 (4GB/8GB VRAM) & RAM 8GB DDR4
 
-Menjalankan model **Gemma 4 12B** (atau Gemma 2 12B/9B) yang mendukung kapabilitas Multimodal & Deep Thinking pada spesifikasi perangkat keras terbatas seperti **NVIDIA RTX 3050 + RAM 8GB DDR4** membutuhkan rekayasa komputasi khusus. Tanpa optimasi, proses *deep thinking* berulang pada pertanyaan sederhana akan menyebabkan kehabisan VRAM (CUDA Out of Memory), *swapping* berat ke RAM DDR4, dan *system freeze*.
-
-Sistem **Nvoin AI** telah dilengkapi dengan **4 Lapis Optimasi Komputasi (Four-Layer Hardware & Routing Optimization)** yang dirancang khusus untuk skenario hardware ini:
-
----
-
-### 1. Fast-Path Circuit Breaker (Heuristic Routing Tanpa Deep Think)
-Pada model dengan fitur *deep thinking*, menanyakan pertanyaan sederhana (contoh: *"Halo bro"*, *"Jelaskan apa itu OOP"*, *"Format tanggal hari ini"*) sering kali memicu model untuk berpikir bertele-tele di dalam tag `<think>...</think>` sebelum menjawab.
-* **Solusi Nvoin AI**: Kami menanamkan mekanisme `_is_simple_conversational_query()` pada `AgentOrchestrator`.
-* **Cara Kerja**: Jika instruksi pengguna pendek (< 35 kata) dan tidak mengandung kata kunci eksekusi teknis berat (`buatkan file`, `eksekusi terminal`, `refactor`, `bug`, dll.), Nvoin AI akan **melewatkan siklus delegasi multi-agen yang berat** dan langsung memanggil model dalam mode *Fast Direct Answer* dengan batas token pendek (`max_tokens=512`), menghemat hingga **80% penggunaan GPU & RAM**.
+Menjalankan model AI lokal (seperti Gemma 12B atau 31B via Ollama) pada spesifikasi perangkat keras terbatas seperti **NVIDIA RTX 3050 + RAM 8GB DDR4** sering kali menyebabkan masalah beban komputasi lokal:
+1. **Kehabisan Penyimpanan Disk**: File bobot model lokal menyedot puluhan gigabyte penyimpanan SSD/HDD.
+2. **CUDA Out of Memory (OOM)**: VRAM RTX 3050 yang terbatas mudah penuh saat memuat model 12B/31B.
+3. **System Swapping & Freeze**: Memuat model ke RAM DDR4 menyebabkan sistem menjadi lambat atau macet total.
 
 ---
 
-### 2. Deep-Think Stripping & Token Clamping (`clean_deep_think_tags`)
-Jika model tetap menghasilkan token refleksi internal yang panjang saat menjawab, Nvoin AI secara otomatis memfilter dan membersihkan tag `<think>...</think>` pada antarmuka pengguna (`llm_client.py`), serta membatasi prediksi maksimum (`num_predict=1024`) sehingga model tidak terjebak dalam *infinite reasoning loop*.
+## Solusi Nvoin AI: 100% Cloud API Architecture
+
+Untuk menyelesaikan batasan hardware tersebut secara permanen, **Nvoin AI Agent Code** telah menghapus seluruh ketergantungan pada Ollama maupun pelatihan lokal, dan beralih sepenuhnya ke **Cloud LLM API**:
+
+### 1. Zero VRAM & Zero Local RAM Burden
+Dengan memindahkan komputasi inferensi ke Cloud API (**Gemini 3.5 Flash** dan **HuggingFace Gemma 4 31B IT**), komputer lokal Anda **sama sekali tidak terbebani oleh inferensi LLM**. VRAM GPU RTX 3050 dan RAM 8GB DDR4 Anda tetap 100% bebas untuk menjalankan IDE, emulator, atau aplikasi Flutter dengan sangat lancar.
+
+### 2. Penghematan Penyimpanan Disk (Puluhan GB)
+Tanpa perlu mengunduh model Ollama ataupun dataset pelatihan (*training*), ruang penyimpanan SSD/HDD komputer lokal Anda tetap lega dan bersih.
+
+### 3. Kecepatan & Kapasitas Tanpa Kompromi
+Meskipun berjalan pada laptop/komputer spesifikasi ringan, Anda mendapatkan akses penuh ke model sekelas **31B parameter (Gemma 4 31B IT)** dan model berkecepatan ultra-tinggi (**Gemini 3.5 Flash**) yang jauh melebihi kapasitas hardware lokal biasa.
 
 ---
 
-### 3. Manajemen Konteks Memori KV Cache (`num_ctx`)
-Secara default, Ollama/vLLM mengalokasikan jendela konteks sebesar `8192` atau `4096` token. Pada RAM 8GB DDR4, alokasi KV cache sebesar ini dapat menyedot lebih dari 3-4GB RAM sistem hanya untuk penyangga teks.
-* **Optimasi Nvoin AI**: Kami membatasi default `num_ctx=2048` di `core/config.py`. Ukuran ini sangat cukup untuk menampung riwayat kode dan instruksi agen, namun tetap aman dan tidak membebani kapasitas RAM 8GB.
-
----
-
-### 4. GPU Layer Offloading & Quantization (Q4_K_M / AWQ 4-bit)
-Agar model 12B dapat berjalan lancar di RTX 3050:
-1. **Kuantisasi Wajib**: Gunakan model dengan format kuantisasi **4-bit (Q4_K_M)** (sekitar 6.8 GB ukuran file). Jangan gunakan FP16 (24 GB) atau INT8 (12 GB).
-2. **Offloading Parsial (`num_gpu=24`)**: Mengingat VRAM RTX 3050 terbatas, Nvoin AI mengaturnya agar sebagian layer diproses di VRAM GPU yang sangat cepat, dan sisa layer ditangani oleh RAM DDR4 secara seimbang tanpa memicu *crash* CUDA.
-
----
-
-### Rekomendasi Pengaturan Model Ollama untuk RTX 3050
-Pastikan model yang Anda jalankan di Ollama menggunakan kuantisasi 4-bit. Jika Anda ingin mengunduh atau menjalankan model yang paling optimal, gunakan perintah terminal berikut:
-
-```bash
-# Menjalankan Gemma versi kuantisasi 4-bit yang hemat VRAM
-ollama run gemma2:9b-instruct-q4_K_M
-# atau untuk Gemma 12B
-ollama run gemma:12b-instruct-q4_K_M
-```
-
-Dengan seluruh optimasi ini, Nvoin AI tetap gesit, responsif, dan stabil dijalankan pada **NVIDIA RTX 3050 dan RAM 8GB DDR4** tanpa hambatan komputasi yang berlebihan!
+Dengan optimasi arsitektur berbasis Cloud API ini, Nvoin AI memberikan performa pengodingan kelas enterprise yang sangat cepat, ringan, dan stabil di **NVIDIA RTX 3050 dan RAM 8GB DDR4**!
