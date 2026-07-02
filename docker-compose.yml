@@ -29,24 +29,16 @@ services:
       - mongo_data:/data/db
     restart: always
 
-  # 3. Layanan LLM Open-Source Backend (Ollama) untuk Gemma 4 12B
-  ollama:
-    image: ollama/ollama:latest
-    container_name: nvoin_ollama_backend
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_storage:/root/.ollama
-    restart: always
-
-  # 4. Layanan Nvoin AI API Bridge & Orchestrator
+  # 3. Layanan Nvoin AI API Bridge & Orchestrator (Menggunakan Cloud API)
   nvoin-api:
     build: .
     container_name: nvoin_api_server
     environment:
-      - LLM_PROVIDER=ollama
-      - LLM_MODEL=gemma4:12b
-      - LLM_BASE_URL=http://ollama:11434
+      - LLM_PROVIDER=gemini
+      - LLM_MODEL=gemini-3.5-flash
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - HUGGING_FACE_API_KEY=${HUGGING_FACE_API_KEY}
+      - QWEN_MODEL_API=${QWEN_MODEL_API}
       - POSTGRES_URI=postgresql://nvoin_admin:nvoin_secret_password@postgres:5432/nvoin_db
       - MONGODB_URI=mongodb://nvoin_admin:nvoin_secret_password@mongodb:27017/?authSource=admin
       - MONGODB_DB=nvoin_chat_db
@@ -57,10 +49,8 @@ services:
     depends_on:
       - postgres
       - mongodb
-      - ollama
     restart: always
 
 volumes:
   postgres_data:
   mongo_data:
-  ollama_storage:

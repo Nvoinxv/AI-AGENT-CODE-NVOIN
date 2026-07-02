@@ -1,4 +1,4 @@
 """
 Models module.
-Menyediakan antarmuka komunikasi dengan LLM (Ollama, vLLM, OpenAI-compatible) serta Prompts sistem.
+Menyediakan antarmuka komunikasi dengan Cloud LLM API (Gemini, HuggingFace, Qwen) serta Prompts sistem.
 """

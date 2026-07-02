@@ -3,12 +3,12 @@
     Launcher AI Agent Code khusus lingkungan Windows (PowerShell).
 .DESCRIPTION
     Skrip ini memastikan virtual environment Python siap, dependensi terinstal, dan
-    variabel lingkungan (termasuk Ollama / vLLM) dikonfigurasi dengan benar di Windows.
+    variabel lingkungan dikonfigurasi dengan benar di Windows.
 #>
 
 $ErrorActionPreference = "Stop"
 
-Write-Host "=== AI AGENT CODE (FUGU ARCHITECTURE) - WINDOWS LAUNCHER ===" -ForegroundColor Cyan
+Write-Host "=== NVOIN AI AGENT CODE - WINDOWS LAUNCHER ===" -ForegroundColor Cyan
 
 # 1. Cek apakah Python terinstal
 if (-not (Get-Command "python" -ErrorAction SilentlyContinue)) {
@@ -33,11 +33,10 @@ Write-Host "[2/3] Memeriksa dependensi Python di requirements.txt..." -Foregroun
 & $VenvPip install -r (Join-Path $PSScriptRoot "requirements.txt")
 
 # 4. Set Environment Variables default (Jika belum diatur pengguna)
-if (-not $env:LLM_BACKEND) { $env:LLM_BACKEND = "ollama" }
-if (-not $env:OLLAMA_MODEL) { $env:OLLAMA_MODEL = "gemma4:12b" }
-if (-not $env:OLLAMA_BASE_URL) { $env:OLLAMA_BASE_URL = "http://localhost:11434" }
+if (-not $env:LLM_PROVIDER) { $env:LLM_PROVIDER = "gemini" }
+if (-not $env:LLM_MODEL) { $env:LLM_MODEL = "gemini-3.5-flash" }
 
-Write-Host "[3/3] Menjalankan AI Agent Code CLI (Backend: $env:LLM_BACKEND | Model: $env:OLLAMA_MODEL)..." -ForegroundColor Green
+Write-Host "[3/3] Menjalankan AI Agent Code CLI (Backend: $env:LLM_PROVIDER | Model: $env:LLM_MODEL)..." -ForegroundColor Green
 Write-Host "-----------------------------------------------------------------" -ForegroundColor Gray
 
 & $VenvPython -m cli.main

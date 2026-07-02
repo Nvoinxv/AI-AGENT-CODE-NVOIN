@@ -5,14 +5,13 @@ from core.config import SystemConfig
 from core.message import Message, MessageRole
 from core.state import ExecutionState, SubagentResult
 from models.llm_client import LLMClient
-from models.prompts import FUGU_MANAGER_PROMPT
+from models.prompts import NVOIN_MANAGER_PROMPT
 from core.multimodal_handler import MultimodalHandler
 
 class AgentOrchestrator:
     """
-    Inti dari sistem Fugu Architecture.
-    Menyajikan antarmuka tunggal seolah-olah 1 model AI, namun di dalam
-    bertindak sebagai Project Manager yang mendelegasikan tugas ke tim ahli.
+    Inti dari sistem Nvoin AI Agent Code.
+    Menyajikan antarmuka otonom yang memimpin tim ahli pemecahan masalah programming.
     """
     def __init__(self, config: SystemConfig, llm_client: LLMClient, agents: Dict[str, Any]):
         self.config = config
@@ -34,14 +33,14 @@ class AgentOrchestrator:
 
         print(f"\n[Nvoin Orchestrator] Menerima instruksi (Session: {session_id})...")
 
-        # FAST-PATH CIRCUIT BREAKER (Optimasi RTX 3050 & RAM 8GB):
+        # FAST-PATH CIRCUIT BREAKER:
         # Jika instruksi berupa pertanyaan sederhana, percakapan umum, atau sapaan singkat,
-        # jawab langsung tanpa memuat prompt manajer multi-agen yang berat!
+        # jawab langsung tanpa memuat siklus orkestrasi penuh.
         if self._is_simple_conversational_query(user_prompt, attachments):
             if self.config.agent.verbose:
-                print("[Nvoin Fast-Path] Mode hemat VRAM aktif: Menjawab langsung pertanyaan sederhana tanpa delegasi multi-agen.")
+                print("[Nvoin Fast-Path] Menjawab langsung pertanyaan sederhana.")
             fast_messages = [
-                Message(role=MessageRole.SYSTEM, content="Anda adalah Nvoin AI. Jawablah pertanyaan atau sapaan pengguna secara singkat, akurat, dan langsung ke intinya. Jangan melakukan deep thinking berlebihan atau menghasilkan tag <think>."),
+                Message(role=MessageRole.SYSTEM, content="Anda adalah Nvoin AI. Jawablah pertanyaan atau sapaan pengguna secara singkat, akurat, dan langsung ke intinya."),
                 Message(role=MessageRole.USER, content=user_prompt)
             ]
             direct_ans = self.llm.generate(messages=fast_messages, temperature=0.3)
@@ -55,7 +54,7 @@ class AgentOrchestrator:
                 print(f"[Nvoin Orchestrator] Iterasi Manajer #{state.current_loop}")
 
             # 1. Siapkan konteks untuk Manajer Nvoin AI
-            manager_context = FUGU_MANAGER_PROMPT.format(
+            manager_context = NVOIN_MANAGER_PROMPT.format(
                 subagent_summary=state.get_summary_for_manager(),
                 user_prompt=user_prompt,
                 attachments_summary=str(attachments or "Tidak ada lampiran tambahan")
@@ -159,32 +158,25 @@ class AgentOrchestrator:
                 return json.loads(json_str)
         except Exception:
             pass
-        # Fallback jika model menjawab dalam teks biasa tanpa JSON structured output
         return {"action": "direct_answer", "response": response_text}
 
     def _is_simple_conversational_query(self, prompt: str, attachments: Optional[list]) -> bool:
-        """
-        Klasifikasi cepat apakah permintaan merupakan sapaan/pertanyaan umum yang tidak membutuhkan
-        orkestrasi multi-agen atau deep thinking berat pada RTX 3050 & RAM 8GB.
-        """
+        """Klasifikasi cepat apakah permintaan merupakan sapaan/pertanyaan umum yang sederhana."""
         if attachments and len(attachments) > 0:
-            return False  # Jika ada lampiran gambar/file, perlu analisis lanjutan
+            return False
 
         text_lower = prompt.lower().strip()
         words = text_lower.split()
         
-        # Kata kunci yang memerlukan analisis agen & rencana eksekusi kode
         complex_keywords = [
             'file', 'folder', 'buatkan', 'tulis', 'kode', 'code', 'script', 'eksekusi',
             'run', 'terminal', 'bug', 'debug', 'error', 'refactor', 'scrape', 'browser',
             'install', 'git', 'project', 'proyek', 'docker', 'database', 'sql', 'test', 'struktur'
         ]
 
-        # Jika ada kata kunci teknis/eksekusi, jalankan siklus orkestrasi penuh
         if any(kw in text_lower for kw in complex_keywords):
             return False
 
-        # Jika instruksi pendek (< 35 kata) dan tidak memuat kata kunci eksekusi, anggap sederhana
         if len(words) < 35:
             return True
 

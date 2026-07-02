@@ -1,6 +1,6 @@
 @echo off
 TITLE AI AGENT CODE - WINDOWS LAUNCHER
-echo === AI AGENT CODE (FUGU ARCHITECTURE) - WINDOWS CMD LAUNCHER ===
+echo === NVOIN AI AGENT CODE - WINDOWS CMD LAUNCHER ===
 
 where python >nul 2>nul
 if %errorlevel% neq 0 (
@@ -23,11 +23,10 @@ echo [2/3] Menginstal / memperbarui dependensi Python...
 %VENV_PIP% install --quiet --upgrade pip
 %VENV_PIP% install -r "%~dp0requirements.txt"
 
-if not defined LLM_BACKEND set LLM_BACKEND=ollama
-if not defined OLLAMA_MODEL set OLLAMA_MODEL=gemma4:12b
-if not defined OLLAMA_BASE_URL set OLLAMA_BASE_URL=http://localhost:11434
+if not defined LLM_PROVIDER set LLM_PROVIDER=gemini
+if not defined LLM_MODEL set LLM_MODEL=gemini-3.5-flash
 
-echo [3/3] Memulai AI Agent CLI...
+echo [3/3] Memulai AI Agent CLI (Backend: %LLM_PROVIDER% | Model: %LLM_MODEL%)...
 echo -----------------------------------------------------------------
 %VENV_PYTHON% -m cli.main
 pause

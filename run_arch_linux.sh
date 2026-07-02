@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Launcher AI Agent Code Khusus Arch Linux (Fugu Architecture)
+# Launcher AI Agent Code Khusus Arch Linux
 # ==============================================================================
 
 set -e
 
-echo -e "\033[1;36m=== AI AGENT CODE (FUGU ARCHITECTURE) - ARCH LINUX LAUNCHER ===\033[0m"
+echo -e "\033[1;36m=== NVOIN AI AGENT CODE - ARCH LINUX LAUNCHER ===\033[0m"
 
 # 1. Cek apakah ini sistem berbasis Arch Linux
 if [ -f "/etc/os-release" ]; then
@@ -38,11 +38,10 @@ $VENV_PIP install --quiet --upgrade pip
 $VENV_PIP install -r "$SCRIPT_DIR/requirements.txt"
 
 # 5. Konfigurasi Environment Variables (Dapat dioverride dengan export)
-export LLM_BACKEND="${LLM_BACKEND:-ollama}"
-export OLLAMA_MODEL="${OLLAMA_MODEL:-gemma4:12b}"
-export OLLAMA_BASE_URL="${OLLAMA_BASE_URL:-http://localhost:11434}"
+export LLM_PROVIDER="${LLM_PROVIDER:-gemini}"
+export LLM_MODEL="${LLM_MODEL:-gemini-3.5-flash}"
 
-echo -e "\033[1;32m[3/3] Menjalankan AI Agent Code CLI (Backend: $LLM_BACKEND | Model: $OLLAMA_MODEL)...\033[0m"
+echo -e "\033[1;32m[3/3] Menjalankan AI Agent Code CLI (Backend: $LLM_PROVIDER | Model: $LLM_MODEL)...\033[0m"
 echo "-----------------------------------------------------------------"
 
 exec $VENV_PYTHON -m cli.main "$@"
