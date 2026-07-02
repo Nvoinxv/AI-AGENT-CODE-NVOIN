@@ -1,25 +1,30 @@
-# NVOIN AI AGENT CODE (Multi-Agent & Multimodal Architecture for Gemma 4 12B)
+# NVOIN AI AGENT CODE (Autonomous Multi-Model Cloud Agent)
 
-**NVOIN AI** adalah sistem agen otonom berbasis Python & Flutter untuk eksekusi pemrograman profesional, analisis gambar/multimodal, web browsing, dan eksekusi terminal (mendukung penuh **Windows** dan **Linux Arch**).
+**NVOIN AI AGENT CODE** adalah sistem agen otonom berbasis Python & Flutter untuk eksekusi pemrograman profesional, analisis gambar/multimodal, web browsing, dan eksekusi terminal (mendukung penuh **Windows** dan **Linux Arch**).
 
-## Arsitektur Nvoin AI (Masquerade as a Single Model)
-Dari sudut pandang pengguna (CLI maupun Frontend Flutter GUI), sistem ini berfungsi dan terasa seperti **satu model AI tunggal yang sangat cerdas**. Anda cukup mengirim instruksi pemrograman, mengunggah gambar mockup, atau menyebutkan file/folder lewat antarmuka prompt.
+Sistem ini didesain tanpa ketergantungan model lokal yang memakan banyak penyimpanan disk (seperti Ollama), melainkan memanfaatkan kekuatan **Cloud LLM API** bermutu tinggi:
+- **Gemini**: Menggunakan **Gemini 3.5 Flash** (khususnya untuk penulisan kode, eksekusi tool cepat, dan analisis akurat).
+- **HuggingFace**: Menggunakan **Gemma 4 31B IT** (`google/gemma-4-31B-it`) untuk nalar mendalam.
+- **Qwen**: Menggunakan Qwen DashScope API.
 
-Di balik layar, model utama (**Nvoin Manager**) yang disiapkan untuk model open source sekelas **Gemma 4 12B** bertindak sebagai *Experienced Project Manager*:
-1. **Direct Answer**: Menjawab langsung jika instruksi bersifat konseptual atau sederhana.
-2. **Delegation / Dispatch**: Meminta bantuan tim agen spesialis jika instruksi kompleks:
-   - **PlannerAgent**: Merancang arsitektur dan memecah masalah coding.
+## Arsitektur Nvoin AI (Unified Coding & Orchestration Agent)
+Dari sudut pandang pengguna (CLI maupun Frontend Flutter GUI), sistem berfungsi secara cerdas dan otonom. Anda cukup mengirim instruksi pemrograman, mengunggah gambar mockup, atau menyebutkan file/folder lewat antarmuka prompt.
+
+Di balik layar, **Nvoin Manager** bertindak sebagai *Experienced Project Manager*:
+1. **Direct Answer**: Menjawab langsung jika instruksi bersifat konseptual atau sederhana dengan latensi ultra-rendah.
+2. **Delegation & Execution**: Meminta bantuan agen spesialis internal jika instruksi kompleks:
+   - **PlannerAgent**: Merancang Rencana Implementasi dan memecah masalah coding.
    - **CoderAgent**: Menulis dan mengedit berkas kode di sistem berkas secara relatif maupun absolut.
    - **ExecutorAgent**: Menjalankan perintah terminal (PowerShell di Windows, Bash di Arch Linux) serta unit testing.
    - **ReviewerAgent**: Mengaudit keamanan kode, menganalisis gambar/mockup UI, dan melakukan debugging.
-3. **Iterative Self-Correction Loop**: Memperbaiki error eksekusi secara otomatis hingga tuntas.
+3. **Confidence Score & Planning Mode**: Menilai kejelasan instruksi pengguna (0.0 hingga 1.0) untuk mencegah salah eksekusi kode.
 
 ---
 
-## 🔬 Catatan Kritis Arsitektur & Peta Jalan Riset
-Sesuai analisis kritis engineering di [ARCHITECTURE_ANALYSIS.md](file:///C:/Users/Nvoinvx/Downloads/AI_AGENT_CODE/ARCHITECTURE_ANALYSIS.md), sistem ini membedakan secara tegas antara **Behavior Sistem** (orkestrasi, routing modular) dengan **Metode Pelatihan**:
-- **Tahap Saat Ini (Modular Orchestration Framework)**: Routing dilakukan secara *prompt-based* & *rule-based* yang kompatibel dengan model open-source apa pun melalui Ollama/vLLM/OpenAI endpoint. Dilengkapi dengan **Confidence Score** dan **Planning Mode** agar tidak asal mengeksekusi kode.
-- **Tahap Riset Masa Depan (Fine-Tuned Neural Manager)**: Arsitektur disiapkan dengan *hook/interface* modular sehingga model manager hasil fine-tuning (menggunakan pipeline `training/`) kelak dapat langsung menggantikan prompt-router tanpa merubah struktur alat maupun antarmuka Flutter.
+## 🔬 Evolusi Arsitektur & Efisiensi Penyimpanan
+Sesuai analisis di [ARCHITECTURE_ANALYSIS.md](file:///C:/Users/Nvoinvx/Downloads/AI_AGENT_CODE/ARCHITECTURE_ANALYSIS.md):
+- **Penghapusan Ollama**: Kami telah menghapus seluruh kontainer dan dependensi Ollama. Hal ini menghemat puluhan gigabyte ruang disk pada komputer Anda sekaligus menghilangkan beban VRAM/RAM lokal.
+- **Pembatalan Arsitektur FUGU**: Arsitektur simulasi multi-agen lokal Fugu digantikan oleh **Unified Cloud API Agent** yang langsung menghubungkan Nvoin Manager ke Gemini 3.5 Flash & Gemma 4 31B IT dengan efisiensi dan keakuratan jauh lebih tinggi.
 
 ---
 
@@ -27,13 +32,12 @@ Sesuai analisis kritis engineering di [ARCHITECTURE_ANALYSIS.md](file:///C:/User
 
 ```text
 AI_AGENT_CODE/
-├── api/                  # [NEW] Python FastAPI Bridge untuk antarmuka Frontend GUI
-├── frontend_ai_agent_code/# [NEW] Aplikasi Desktop/Web Flutter Nvoin AI
+├── api/                  # Python FastAPI Bridge untuk antarmuka Frontend GUI
+├── frontend_ai_agent_code/# Aplikasi Desktop/Web Flutter Nvoin AI
 ├── core/                 # Logika Inti Nvoin Manager, OS Detection, State, & Message
 ├── agents/               # Sub-agen spesialis (Planner, Coder, Executor, Reviewer)
 ├── tools/                # Pustaka alat (File Read/Write, Grep/List, Terminal Runner)
-├── models/               # Unified LLM Client (Ollama/vLLM/OpenAI) & Prompts
-├── training/             # Pipeline QLoRA Fine-tuning khusus model 12B
+├── models/               # Unified Cloud LLM Client (Gemini, HuggingFace, Qwen)
 ├── cli/                  # Antarmuka CLI terpadu
 ├── run_windows.ps1       # Launcher otomatis Windows PowerShell
 ├── run_windows.bat       # Launcher otomatis Windows CMD
@@ -44,11 +48,20 @@ AI_AGENT_CODE/
 
 ## Panduan Penggunaan Cepat
 
-### 1. Menjalankan CLI Mode (Terminal)
+### 1. Konfigurasi API Key
+Salin `.env.example` menjadi `.env` dan masukkan API Key Anda:
+```env
+LLM_PROVIDER=gemini
+LLM_MODEL=gemini-3.5-flash
+GEMINI_API_KEY=your_gemini_key
+HUGGING_FACE_API_KEY=your_hf_key
+```
+
+### 2. Menjalankan CLI Mode (Terminal)
 - **Di Windows**: Jalankan `.\run_windows.ps1` atau `run_windows.bat`
 - **Di Arch Linux**: Jalankan `./run_arch_linux.sh`
 
-### 2. Menjalankan Backend API Server & Frontend Flutter
+### 3. Menjalankan Backend API Server & Frontend Flutter
 Jalankan server bridge Python:
 ```bash
 python -m api.server
