@@ -23,9 +23,18 @@ class AgentConfig(BaseModel):
     verbose: bool = Field(default=True)
     enable_sandbox: bool = Field(default=True)
 
+class DatabaseConfig(BaseModel):
+    """Konfigurasi koneksi Database & API Key (PostgreSQL & MongoDB Cloud/Local)."""
+    postgres_uri: str = Field(default_factory=lambda: os.getenv("POSTGRES_URI", "sqlite:///./nvoin_local.db"))
+    postgres_api_key: str = Field(default_factory=lambda: os.getenv("POSTGRES_API_KEY", ""))
+    mongodb_uri: str = Field(default_factory=lambda: os.getenv("MONGODB_URI", "mongodb://localhost:27017/"))
+    mongodb_db: str = Field(default_factory=lambda: os.getenv("MONGODB_DB", "nvoin_chat_db"))
+    mongodb_api_key: str = Field(default_factory=lambda: os.getenv("MONGODB_API_KEY", ""))
+
 class SystemConfig(BaseModel):
     llm: LLMConfig = Field(default_factory=LLMConfig)
     agent: AgentConfig = Field(default_factory=AgentConfig)
+    db: DatabaseConfig = Field(default_factory=DatabaseConfig)
 
 def get_config() -> SystemConfig:
     return SystemConfig()

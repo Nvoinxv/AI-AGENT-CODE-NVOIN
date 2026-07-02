@@ -1,23 +1,26 @@
-import os
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 from pymongo import MongoClient
-
-MONGODB_URI = os.getenv("MONGODB_URI", "mongodb://localhost:27017/")
-MONGODB_DB = os.getenv("MONGODB_DB", "nvoin_chat_db")
+from core.config import get_config
 
 class MongoDBHandler:
-    """Pengelola penyimpanan MongoDB untuk Riwayat Percakapan (Conversation History)."""
-    def __init__(self, uri: str = MONGODB_URI, db_name: str = MONGODB_DB):
+    """Pengelola penyimpanan MongoDB untuk Riwayat Percakapan (Conversation History) dengan dukungan API Key."""
+    def __init__(self):
+        db_cfg = get_config().db
+        self.uri = db_cfg.mongodb_uri
+        self.db_name = db_cfg.mongodb_db
+        self.api_key = db_cfg.mongodb_api_key
         self.client = None
         self.db = None
-        self.uri = uri
-        self.db_name = db_name
         self.connect()
 
     def connect(self):
         try:
-            self.client = MongoClient(self.uri, serverSelectionTimeoutMS=2000)
+            kwargs = {"serverSelectionTimeoutMS": 2000}
+            if self.api_key:
+                # Opsi autentikasi tambahan untuk MongoDB Atlas Cloud / API Key
+                kwargs["authMechanismProperties"] = {"API_KEY": self.api_key}
+            self.client = MongoClient(self.uri, **kwargs)
             self.db = self.client[self.db_name]
         except Exception as e:
             print(f"[MongoDB Warning] Tidak dapat terhubung ke MongoDB ({e}). Penyimpanan histori memori aktif fallback.")
