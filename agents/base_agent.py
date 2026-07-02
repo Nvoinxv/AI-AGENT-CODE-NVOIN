@@ -8,7 +8,7 @@ from models.llm_client import LLMClient
 from tools.base_tool import BaseTool
 
 class BaseAgent(ABC):
-    """Kelas dasar untuk setiap sub-agen dalam arsitektur Fugu (Dilengkapi konteks OS Windows & Arch Linux)."""
+    """Kelas dasar untuk setiap agen spesialis dalam ekosistem Nvoin AI (Dilengkapi konteks OS Windows & Arch Linux)."""
     def __init__(self, name: str, system_prompt: str, llm_client: LLMClient, tools: List[BaseTool] = None):
         self.name = name
         self.system_prompt = system_prompt

@@ -17,8 +17,8 @@ class SystemStatus {
         return SystemStatus(
             status: json['status'] ?? 'offline',
             agent: json['agent'] ?? 'Nvoin AI',
-            llmBackend: json['llm_backend'] ?? 'ollama',
-            modelName: json['model_name'] ?? 'gemma4:12b',
+            llmBackend: json['llm_backend'] ?? 'gemini',
+            modelName: json['model_name'] ?? 'gemini-3.5-flash',
             osInfo: json['os_info'] ?? {},
         );
     }
