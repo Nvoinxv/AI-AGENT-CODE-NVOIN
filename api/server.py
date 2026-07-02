@@ -67,7 +67,7 @@ class ChatRequest(BaseModel):
     project_id: Optional[str] = "default_project"
     user_id: Optional[str] = "default_user"
     attachments: Optional[List[AttachmentModel]] = None
-    mode: Optional[str] = "fugu_auto"  # 'fugu_auto', 'direct', 'deep_think'
+    mode: Optional[str] = "auto"  # 'auto', 'direct', 'deep_think'
 
 class SubagentLog(BaseModel):
     agent_name: str

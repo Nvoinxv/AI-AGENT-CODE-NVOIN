@@ -1,4 +1,4 @@
 """
-Core module untuk AI AGENT CODE (Fugu Architecture).
+Core module untuk Nvoin AI Agent Code.
 Menyediakan Orchestrator Manager, State Management, Message schemas, dan Config.
 """
