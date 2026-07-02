@@ -19,7 +19,7 @@ class AgentController extends ChangeNotifier {
     bool isLoading = false;
     String currentSessionId = 'nvoin_session_01';
     SystemStatus? systemStatus;
-    String selectedMode = 'Nvoin v4.2 (Gemma 12B)';
+    String selectedMode = 'Nvoin Cloud (Gemini / Gemma 31B)';
 
     AgentController() {
         init();
