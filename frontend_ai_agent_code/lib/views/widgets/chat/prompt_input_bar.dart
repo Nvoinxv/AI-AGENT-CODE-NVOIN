@@ -35,7 +35,7 @@ class _PromptInputBarState extends State<PromptInputBar> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                            const Text('ADD MULTIMODAL ATTACHMENT (GEMMA 4 12B)', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                            const Text('ADD MULTIMODAL ATTACHMENT (GEMINI / GEMMA VISION)', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                             const SizedBox(height: 14),
                             ListTile(
                                 leading: const Icon(LucideIcons.image, color: AppColors.primaryNeon),
