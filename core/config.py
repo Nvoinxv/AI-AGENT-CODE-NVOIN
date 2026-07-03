@@ -13,6 +13,8 @@ class LLMConfig(BaseModel):
     temperature: float = Field(default=0.2)
     max_tokens: int = Field(default=2048)
     api_key: str = Field(default_factory=lambda: os.getenv("GEMINI_API_KEY", os.getenv("HUGGING_FACE_API_KEY", os.getenv("QWEN_MODEL_API", "EMPTY"))))
+    max_tokens: int = Field(default=1024)
+    api_key: str = Field(default_factory=lambda: os.getenv("OPENAI_API_KEY", "EMPTY"))
 
 class AgentConfig(BaseModel):
     """Konfigurasi sistem untuk AI Agent Code."""
